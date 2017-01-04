@@ -1,0 +1,66 @@
+# Mini Project#5 - Memory
+#importing required modules
+import simplegui
+import random
+#preparing deck and initialising globals
+deck = range(0,8)+range(0,8)
+exposed= []
+click_index ,prev_index1, prev_index2,turns = 0,-1,-1,0
+
+def new_game():
+    # shuffling the deck for a new game
+    random.shuffle(deck) 
+    
+    global exposed,turns,state,prev_index1,prev_index2
+    state = turns = 0
+    prev_index1, prev_index2 = -1,-1
+    exposed = [False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False]
+    
+# defining event handlers
+def mouseclick(pos):
+    global exposed, click_index,state,deck,prev_index1,turns,prev_index2
+    click_index = pos[0]//50
+    # conditional statement helping to ignore multiple clicks on an exposed card
+    if not exposed[click_index]:
+        # starting of the game
+        if state == 0:
+            state = 1
+            exposed[click_index]= True
+            prev_index1 = click_index
+        # after one card is flipped    
+        elif state == 1:
+            prev_index2 = click_index
+            state = 2
+            exposed[click_index]= True
+            turns +=1 
+            label.set_text("Turns = " + str(turns))
+        # after flipping two cards    
+        else:
+            # checking number on the cards for equality
+            if deck[prev_index1] != deck[prev_index2]:
+                exposed[prev_index1], exposed[prev_index2] = False, False
+                prev_index1, prev_index2 = -1, -1
+            state = 1
+            exposed[click_index] = True
+            prev_index1 = click_index
+    
+def draw(canvas):
+    for num in range(16):
+        if exposed[num]:
+            canvas.draw_polygon([[num*50, 0], [(num+1)*50, 0], [(num+1)*50, 100], [num*50, 100]], 1, "Red", "White")
+            canvas.draw_text(str(deck[num]), (num*50+11, 69), 55, "Black","serif")
+        else:
+            canvas.draw_polygon([[num*50, 0], [(num+1)*50, 0], [(num+1)*50, 100], [num*50, 100]], 1, "Red", "Green")
+    label.set_text("Turns = " + str(turns))
+        
+# creating frame and adding a button and labels
+frame = simplegui.create_frame("Memory", 800, 100)
+frame.add_button("Reset", new_game)
+label = frame.add_label("Turns = "+ str(turns))
+
+# registering event handlers
+frame.set_mouseclick_handler(mouseclick)
+frame.set_draw_handler(draw)
+
+new_game()
+frame.start()
